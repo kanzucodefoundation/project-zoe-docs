@@ -1,0 +1,109 @@
+---
+title: "Database & Migrations"
+description: "How Project Zoe manages its PostgreSQL schema with TypeORM migrations."
+---
+
+## Overview
+
+Project Zoe uses **PostgreSQL** with **TypeORM**. Schema management differs by environment:
+
+| Environment | Schema management |
+|-------------|------------------|
+| `local` | `DB_SYNCHRONIZE=true` — TypeORM auto-syncs on restart |
+| `staging` / `production` | Explicit migration files — synchronize is disabled |
+
+<Warning>
+  Never set `DB_SYNCHRONIZE=true` in staging or production. It can silently drop columns or tables. All staging and production schema changes must go through a migration file.
+</Warning>
+
+---
+
+## Running migrations
+
+```bash
+# Apply all pending migrations
+npm run migration:run
+
+# Roll back the most recent migration
+npm run migration:revert
+
+# List applied and pending migrations
+npm run migration:show
+```
+
+---
+
+## Creating a migration
+
+After modifying a TypeORM entity, generate a migration automatically:
+
+```bash
+npm run migration:generate -- src/migrations/AddFieldToContact
+```
+
+TypeORM diffs the current database schema against the entity definitions and writes a migration file with `up()` and `down()` methods.
+
+Always review the generated file before committing — TypeORM occasionally generates destructive statements (e.g. dropping a column it thinks was removed) that need to be corrected manually.
+
+---
+
+## Migration workflow
+
+1. Make your entity change.
+2. Generate the migration: `npm run migration:generate -- src/migrations/<Name>`.
+3. Review the generated file in `src/migrations/`.
+4. Test locally: `npm run migration:run` then `npm run migration:revert` to confirm both directions work.
+5. Commit the entity change **and** the migration file together in the same PR.
+
+CI applies pending migrations (`npm run migration:run`) on every deploy to staging and production before restarting the app.
+
+---
+
+## Migration files location
+
+```
+src/migrations/
+├── 1700000000000-InitialSchema.ts
+├── 1700000001000-AddAttendanceModule.ts
+└── ...
+```
+
+---
+
+## Multi-tenancy indexing
+
+All major entities have composite indexes on `(tenant, id)` and other frequently-queried columns:
+
+```typescript
+@Index(['tenant', 'id'])
+@Index(['tenant', 'status'])
+@Index(['tenant', 'transactionDate'])
+```
+
+This ensures queries are always scoped efficiently to a single tenant and never scan the full table.
+
+---
+
+## Data source
+
+The TypeORM `DataSource` is configured in `src/data-source.ts` and used by both the app and the migration CLI:
+
+```bash
+# The migration commands use this data source
+npx typeorm -d src/data-source.ts migration:run
+```
+
+---
+
+## Seeding
+
+Demo data is seeded via NestJS commands (not migrations) so seeding can be run independently of schema management:
+
+```bash
+npm run command create-tenant <name>   # Create tenant + admin user
+npm run seed:comprehensive             # Seed demo groups, contacts, reports
+npm run seed:reset                     # Clear + re-seed
+npm run seed:clear                     # Clear only
+```
+
+See the [Quickstart](/quickstart) for a full seeding walkthrough.

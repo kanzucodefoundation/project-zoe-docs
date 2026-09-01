@@ -1,0 +1,71 @@
+---
+title: "Multi-Tenancy"
+description: "How Project Zoe isolates data between different church organisations."
+---
+
+## Overview
+
+Project Zoe uses **row-level multi-tenancy**: every table that holds tenant-specific data carries a `tenantId` foreign key. A single PostgreSQL database (and schema) serves all tenants — there are no separate schemas or databases per church.
+
+---
+
+## Tenant entity
+
+A `Tenant` record represents one church organisation. It is the root of all data relationships:
+
+```
+Tenant
+ ├── Users
+ ├── Contacts
+ ├── Groups + GroupCategories
+ ├── EventCategories
+ ├── Roles
+ ├── Help articles
+ ├── Chat sessions
+ └── Reports
+```
+
+Tenants are identified by a unique **name** (slug), e.g. `worshipharvest`.
+
+---
+
+## How tenant context flows
+
+1. **Login** — the client sends a `churchName` field in the login body. The `TenantHeaderMiddleware` resolves this to a `Tenant` record and attaches it to the request.
+2. **All protected endpoints** — the `JwtAuthGuard` ensures the JWT is valid. The resolved tenant from the JWT payload scopes every query to `WHERE tenant_id = ?`.
+3. **`TenantAwareRepository`** — a thin wrapper around TypeORM's `Repository` that automatically injects the `tenantId` condition into every `find*` call.
+
+```typescript
+// Conceptual: every query is tenant-scoped automatically
+this.contactRepo.find({ where: { tenant: currentTenant } });
+```
+
+---
+
+## Creating a tenant
+
+Tenants are created via the CLI command:
+
+```bash
+npm run command create-tenant <name>
+```
+
+This creates the tenant record and seeds an initial admin user. You can then seed realistic demo data on top:
+
+```bash
+npm run seed:comprehensive
+```
+
+---
+
+## Tenant isolation guarantees
+
+- All TypeORM entities that hold tenant-specific data are indexed on `(tenant, id)` — queries are fast and never cross tenant boundaries.
+- The `@Index(['tenant', 'id'])` decorator appears on every major entity.
+- The public registration and login endpoints are the only routes that accept unauthenticated requests — everything else requires a valid JWT that carries the tenant claim.
+
+---
+
+## Multi-tenancy and the group hierarchy
+
+Each tenant has its own independent group tree. Groups in one tenant cannot reference or overlap with groups in another. See [Group Hierarchy](/concepts/group-hierarchy) for how the tree is structured within a tenant.

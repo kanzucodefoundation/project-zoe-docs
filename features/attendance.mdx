@@ -1,0 +1,99 @@
+---
+title: "Attendance"
+description: "Tracking weekly service and fellowship attendance with schedule management."
+---
+
+## Overview
+
+The Attendance module provides structured tracking for two recurring meeting types:
+
+| Type | Description |
+|------|-------------|
+| **Service attendance** | Sunday services, midweek services, and special services at a location |
+| **Fellowship attendance** | Weekly missional community (MC/fellowship) meetings |
+
+Both follow the same pattern: a **schedule** defines the recurring meeting, each occurrence is a **instance**, and individual **attendance records** link contacts to a specific instance.
+
+---
+
+## Service schedules
+
+A `ServiceSchedule` defines a recurring service at a location group:
+
+| Field | Values |
+|-------|--------|
+| `name` | Display name (e.g. "Sunday Morning Service") |
+| `location` | The group (location) where the service is held |
+| `serviceType` | `Sunday` · `Midweek` · `Special` |
+| `frequency` | `weekly` · `biweekly` · `monthly` |
+| `daysOfWeek` | Array of day numbers (0 = Sunday) |
+| `startTime` | Time the service begins (e.g. `09:00`) |
+| `tags` | Optional labels (e.g. `["livestream"]`) |
+| `metaData` | `expectedAttendance`, `hasChildrensProgram`, `livestreamEnabled` |
+| `isActive` | Whether the schedule is currently running |
+
+### Service instances
+
+Each actual occurrence of a service is a `ServiceInstance`. The system generates or receives instances as services happen. Attendance is recorded against instances.
+
+---
+
+## Fellowship schedules
+
+A `FellowshipSchedule` defines the recurring meeting for a single fellowship group:
+
+| Field | Values |
+|-------|--------|
+| `fellowshipGroup` | The fellowship `Group` |
+| `meetingDay` | Day of week (0–6, 0 = Sunday) |
+| `startTime` | Time the fellowship meets |
+| `frequency` | `weekly` · `biweekly` · `monthly` |
+| `isActive` | Whether the schedule is active |
+
+### Fellowship instances and attendance
+
+Each meeting is a `FellowshipInstance`. `FellowshipAttendance` records link contacts to an instance with a present/absent status.
+
+---
+
+## Recording attendance
+
+Attendance can be submitted by the fellowship/zone leader via the client UI, or via the API:
+
+```
+POST /api/attendance/service-instances/:id/attendance
+{
+  "contactIds": [12, 34, 56]
+}
+
+POST /api/attendance/fellowship-instances/:id/attendance
+{
+  "presentContactIds": [12, 34],
+  "absentContactIds": [56]
+}
+```
+
+---
+
+## Viewing attendance
+
+Attendance data surfaces in:
+
+- The **Dashboard** as a summary stat for a leader's groups
+- **Reports** — a custom report can include attendance as a field
+- The **Contact** profile — shows which instances a person attended
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/attendance/service-schedules` | List service schedules |
+| `POST` | `/api/attendance/service-schedules` | Create a service schedule |
+| `GET` | `/api/attendance/service-instances` | List service instances |
+| `POST` | `/api/attendance/service-instances/:id/attendance` | Record service attendance |
+| `GET` | `/api/attendance/fellowship-schedules` | List fellowship schedules |
+| `POST` | `/api/attendance/fellowship-schedules` | Create a fellowship schedule |
+| `GET` | `/api/attendance/fellowship-instances` | List fellowship instances |
+| `POST` | `/api/attendance/fellowship-instances/:id/attendance` | Record fellowship attendance |

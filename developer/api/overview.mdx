@@ -1,0 +1,145 @@
+---
+title: "API Overview"
+description: "How to authenticate and call the Project Zoe REST API."
+---
+
+## Base URL
+
+```
+http://localhost:4002    (local development)
+```
+
+All API paths are prefixed with `/api`.
+
+---
+
+## Authentication
+
+All endpoints (except the public ones listed below) require a JWT access token in the `Authorization` header:
+
+```
+Authorization: Bearer <access_token>
+```
+
+Obtain a token by logging in:
+
+```bash
+curl -X POST http://localhost:4002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin@worshipharvest.org",
+    "password": "password123",
+    "churchName": "demo"
+  }'
+```
+
+Response:
+
+```json
+{
+  "accessToken": "eyJhbGci...",
+  "refreshToken": "eyJhbGci...",
+  "user": {
+    "id": 1,
+    "username": "admin@worshipharvest.org",
+    "roles": ["Admin"],
+    "permissions": ["contacts:read", "contacts:write", "..."]
+  }
+}
+```
+
+---
+
+## Token refresh
+
+When the access token expires, use the refresh token to get a new pair without re-authenticating:
+
+```bash
+curl -X POST http://localhost:4002/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{ "refreshToken": "<refresh_token>" }'
+```
+
+---
+
+## Tenant context
+
+The tenant (church) is determined from the JWT. When logging in, pass `churchName` as the tenant slug. All subsequent requests are automatically scoped to that tenant — no extra header is needed.
+
+---
+
+## Public endpoints
+
+These endpoints do not require authentication:
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/auth/login` | Log in and get tokens |
+| `POST` | `/api/auth/forgot-password` | Request a password reset email |
+| `PUT` | `/api/auth/reset-password/:token` | Set a new password via reset token |
+| `POST` | `/api/register` | Register a new user |
+| `GET` | `/api/tenants` | List tenants (for login screen) |
+
+---
+
+## Response format
+
+All responses are JSON. Successful responses return the requested data directly (no wrapper envelope). Errors return a standard NestJS error shape:
+
+```json
+{
+  "statusCode": 404,
+  "message": "Contact not found",
+  "error": "Not Found"
+}
+```
+
+---
+
+## Pagination
+
+List endpoints accept `page` and `limit` query parameters:
+
+```
+GET /api/crm/contacts?page=1&limit=20
+```
+
+Paginated responses include metadata:
+
+```json
+{
+  "data": [...],
+  "total": 142,
+  "page": 1,
+  "limit": 20
+}
+```
+
+---
+
+## Interactive docs
+
+The Swagger UI is available in non-production environments at:
+
+```
+http://localhost:4002/api/docs
+```
+
+---
+
+## Modules
+
+| Module | Base path |
+|--------|-----------|
+| [Authentication](/developer/api/authentication) | `/api/auth` |
+| [Contacts](/developer/api/contacts) | `/api/crm` |
+| [Groups](/developer/api/groups) | `/api/groups` |
+| [Events](/developer/api/events) | `/api/events` |
+| Users & Roles | `/api/users`, `/api/roles` |
+| Attendance | `/api/attendance` |
+| Finance | `/api/finance` |
+| Reports | `/api/reports` |
+| Tasks | `/api/tasks` |
+| Dashboard | `/api/dashboard` |
+| Search | `/api/search` |
+| Notifications | `/api/notifications` |

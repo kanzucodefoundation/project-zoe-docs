@@ -1,0 +1,101 @@
+---
+title: "Authentication & Roles"
+description: "How JWT authentication, refresh tokens, and role-based permissions work in Project Zoe."
+---
+
+## Authentication flow
+
+Project Zoe uses **JWT** for stateless authentication with an access + refresh token pair.
+
+<Steps>
+  <Step title="Login">
+    The client POSTs to `/api/auth/login` with `username`, `password`, and `churchName` (tenant slug).
+
+    ```json
+    {
+      "username": "admin@worshipharvest.org",
+      "password": "password123",
+      "churchName": "worshipharvest"
+    }
+    ```
+
+    On success the server returns an access token (short-lived) and a refresh token (long-lived).
+  </Step>
+  <Step title="Authenticated requests">
+    The client attaches the access token as a Bearer token on every API call:
+
+    ```
+    Authorization: Bearer <access_token>
+    ```
+
+    The global `JwtAuthGuard` validates the token and injects `req.user` (including the resolved `Tenant`).
+  </Step>
+  <Step title="Token refresh">
+    When the access token expires, the client POSTs the refresh token to `/api/auth/refresh` to obtain a new pair without requiring the user to log in again.
+  </Step>
+  <Step title="Logout">
+    POST `/api/auth/logout` — invalidates the session on the server side.
+  </Step>
+</Steps>
+
+---
+
+## Password reset
+
+```
+POST /api/auth/forgot-password   { username }
+  → sends reset link via email
+
+PUT  /api/auth/reset-password/:token   { password }
+  → validates token, sets new password
+```
+
+Passwords must meet minimum complexity requirements enforced by `isValidPassword()`.
+
+---
+
+## Roles and permissions
+
+Roles are defined **per tenant** and carry an array of permission strings:
+
+```typescript
+// Roles entity (simplified)
+{
+  role: "Zone Leader",
+  description: "Leads a zone and its fellowships",
+  permissions: ["contacts:read", "groups:read", "reports:submit"],
+  isActive: true
+}
+```
+
+A user has one or more roles via the `UserRoles` join table. All permission checks are done server-side; the client receives the user's permissions list on login and uses it to show or hide UI elements.
+
+---
+
+## Hierarchy-scoped access
+
+Permissions alone are not enough — Project Zoe also scopes data access to a user's position in the [Group Hierarchy](/concepts/group-hierarchy):
+
+- A user's **home group** (the group they lead or are assigned to) determines the root of the data they can see.
+- Queries traverse the closure table downward from that root, so leaders automatically see all descendants without needing explicit permission per sub-group.
+
+This means two users with the same role but at different levels of the hierarchy see different data sets.
+
+---
+
+## Public routes
+
+Most routes require a valid JWT. Routes decorated with `@Public()` bypass the guard entirely:
+
+- `POST /api/auth/login`
+- `POST /api/auth/forgot-password`
+- `PUT /api/auth/reset-password/:token`
+- `POST /api/register`
+- `GET /api/tenants`
+- `POST /api/tenants/seed`
+
+---
+
+## Passwords
+
+Passwords are hashed with **bcrypt** at cost factor 12 before storage. Plain-text passwords are never persisted.

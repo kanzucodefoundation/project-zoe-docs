@@ -1,0 +1,93 @@
+---
+title: "Tasks"
+description: "Assigning and tracking pastoral follow-up tasks across the team."
+---
+
+## Overview
+
+The Tasks module gives church leaders a lightweight way to assign follow-up actions — for example, visiting a member, calling a first-timer, or following up on a prayer request. Tasks are linked to a contact (the person being followed up), assigned to a user (the person responsible), and tracked through to completion.
+
+---
+
+## Task entity
+
+| Field | Description |
+|-------|-------------|
+| `contact` | The contact this task is about |
+| `assignedTo` | The user responsible for completing the task |
+| `createdBy` | The user who created the task |
+| `title` | Short description |
+| `description` | Full details |
+| `dueDate` | When the task should be completed |
+| `status` | Current state of the task |
+| `type` | Category of task |
+| `priority` | Urgency level |
+| `locationGroup` | The group context (used to route tasks to the right team) |
+
+---
+
+## Task statuses
+
+Tasks move through a defined lifecycle:
+
+```
+OPEN  →  IN_PROGRESS  →  COMPLETED
+      →  CANCELLED
+      →  DEFERRED
+```
+
+`COMPLETED` and `CANCELLED` are **closed statuses** — tasks in these states no longer appear in active queues.
+
+---
+
+## Task types
+
+| Type | Example |
+|------|---------|
+| Follow-up | Visit a first-time visitor |
+| Prayer | Pray for a specific need |
+| Administrative | Process a membership transfer |
+
+---
+
+## Comments
+
+Team members can leave `TaskComment` records on a task to communicate progress or blockers without changing the status. Each comment is timestamped and attributed to its author.
+
+---
+
+## Attachments
+
+`TaskAttachment` records allow files (photos, voice notes, documents) to be attached to a task, useful when a visit report or proof of action is needed.
+
+---
+
+## Notifications
+
+When a task is assigned or updated, the `NotificationsService` sends a real-time push to the assigned user via WebSocket. Users also receive an in-app notification badge.
+
+---
+
+## Retention report
+
+The `RetentionReportService` generates a report of contacts who have been uncontacted for a given period — surfacing who most needs a follow-up task created.
+
+---
+
+## Activity log integration
+
+When a task is created or completed, the CRM `ContactActivityService` appends an activity record to the contact's timeline, giving pastoral staff a complete picture of every touchpoint.
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/tasks` | List tasks (filterable by status, assignee, group) |
+| `POST` | `/api/tasks` | Create a task |
+| `GET` | `/api/tasks/:id` | Get task detail with comments and attachments |
+| `PUT` | `/api/tasks/:id/status` | Update task status |
+| `POST` | `/api/tasks/:id/comments` | Add a comment |
+| `POST` | `/api/tasks/:id/attachments` | Upload an attachment |
+| `GET` | `/api/tasks/retention-report` | Get contacts overdue for follow-up |

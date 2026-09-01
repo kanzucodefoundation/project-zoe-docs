@@ -1,0 +1,120 @@
+---
+title: "Contributing"
+description: "How to contribute bug fixes, features, and improvements to Project Zoe."
+---
+
+## Before you start
+
+- Get the project running locally — follow the [Server Setup](/developer/server-setup) and [Client Setup](/developer/client-setup) guides.
+- Check the [open issues](https://github.com/kanzucodefoundation/project-zoe-server/issues) to see if someone is already working on your idea.
+- For significant changes, open a GitHub issue first to discuss the approach before writing code.
+
+---
+
+## Workflow
+
+```
+feature branch → develop (staging) → master (production)
+```
+
+<Steps>
+  <Step title="Branch from develop">
+    Always branch from `develop`, never from `master`:
+
+    ```bash
+    git checkout develop
+    git pull origin develop
+    git checkout -b feat/your-feature-name
+    ```
+  </Step>
+  <Step title="Make your changes">
+    Keep commits small and focused. Run `npm run lint` before each commit — a pre-commit hook will catch most issues automatically.
+  </Step>
+  <Step title="Test locally">
+    Make sure the server starts cleanly and existing behaviour is not broken. Run `npm test` for unit tests and `npm run test:e2e` for end-to-end tests.
+  </Step>
+  <Step title="Open a PR against develop">
+    Fill in every section of the PR template — especially _how to test_. Incomplete PRs will be sent back.
+  </Step>
+  <Step title="Review and merge">
+    Every PR passes through three layers before it can merge:
+
+    1. **CodeRabbit** auto-reviews when the PR is opened. Resolve every thread it raises.
+    2. **`/pr-review-merge <PR number>`** (run via Claude Code inside the repo) — a judgment-based review that checks gates and routes the PR with a label and reviewer request.
+    3. **A maintainer approves and merges** in the GitHub UI (squash merge).
+  </Step>
+  <Step title="Staging → production">
+    Once verified on staging (`develop`), a separate PR promotes it to `master`, which triggers the production deploy including migrations.
+  </Step>
+</Steps>
+
+---
+
+## Branch naming
+
+```
+{type}/{short-summary}
+```
+
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `chore` | Maintenance, dependencies, config |
+| `docs` | Documentation only |
+| `refactor` | Code restructure without behaviour change |
+
+Examples: `feat/bulk-contact-import`, `fix/attendance-query`, `chore/update-deps`
+
+---
+
+## Commit messages
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add bulk contact import endpoint
+fix: correct attendance count query
+chore: upgrade NestJS to v10
+docs: add API reference for finance module
+```
+
+The repo is Commitizen-friendly — you can run `npm run commit` for an interactive prompt.
+
+---
+
+## Database migrations
+
+When your change modifies a TypeORM entity:
+
+1. Generate a migration: `npm run migration:generate -- src/migrations/<Name>`
+2. Review the generated file carefully.
+3. Test both directions: `npm run migration:run` then `npm run migration:revert`.
+4. Commit the **entity change and the migration file together** in the same PR.
+
+See [Database & Migrations](/developer/database) for the full workflow.
+
+---
+
+## Code style
+
+- **ESLint** and **Prettier** are configured on both server and client.
+- Run `npm run lint` and `npm run format` before pushing.
+- Do not disable lint rules without a clear explanation in a comment.
+
+---
+
+## PR review gates
+
+Before a PR can merge, all of the following must pass:
+
+| Gate | Details |
+|------|---------|
+| CodeRabbit review | All threads resolved |
+| CI checks | `test` workflow green |
+| Real description | PR body filled in, not placeholder text |
+| No credentials | No `.env`, secrets, or key files in the diff |
+| Lockfile explained | `package-lock.json` changes justified (deps added/removed/upgraded) |
+| One approving review | From a Maintainers team member |
+
+PRs that touch sensitive paths (entity definitions, migrations, auth/tenant code, finance, deploy workflows) are routed to the Senior Engineering team for review.

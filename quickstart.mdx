@@ -1,47 +1,134 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Get the Project Zoe server and client running locally in under 10 minutes."
 ---
-
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
 
 ## Prerequisites
 
-Before you begin, you must have:
+- **Node.js 20+** — [nodejs.org](https://nodejs.org/)
+- **PostgreSQL** running locally
+- **Redis** running locally (used for caching; default port 6379)
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+---
 
-## Get started
+## 1. Start the server
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
+  <Step title="Clone and install">
     ```bash
-    npm install your-package
+    git clone https://github.com/kanzucodefoundation/project-zoe-server.git
+    cd project-zoe-server
+    git checkout develop
+    npm install
     ```
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
-
+  <Step title="Configure environment">
     ```bash
-    your-cli init
+    cp .env.sample .env
+    ```
+
+    Open `.env` and fill in at minimum:
+
+    | Variable | Value |
+    |----------|-------|
+    | `DB_USERNAME` | Your Postgres username |
+    | `DB_PASSWORD` | Your Postgres password |
+    | `DB_DATABASE` | `projectzoe-db` (or your choice) |
+    | `APP_ENVIRONMENT` | `local` |
+    | `JWT_SECRET` | Any long random string |
+    | `REDIS_HOST` | `localhost` |
+    | `REDIS_PORT` | `6379` |
+  </Step>
+  <Step title="Create the database">
+    ```bash
+    createdb projectzoe-db
     ```
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+  <Step title="Start the server">
+    ```bash
+    npm run start:dev
+    ```
+
+    The API is available at **http://localhost:4002**.
+  </Step>
+  <Step title="Seed demo data">
+    Create a demo tenant and seed it with realistic contacts, groups, and reports:
 
     ```bash
-    your-cli start
+    npm run command create-tenant demo
+    npm run seed:comprehensive
     ```
+
+    This creates **7 test accounts**, a **6-level group hierarchy**, **50+ contacts**, and **500+ report submissions**. All test accounts use password `password123`.
+
+    | Email | Role |
+    |-------|------|
+    | `admin@worshipharvest.org` | System Admin |
+    | `movement@worshipharvest.org` | Movement Leader |
+    | `location@worshipharvest.org` | Location Pastor |
+    | `zone@worshipharvest.org` | Zone Leader |
+    | `fellowship@worshipharvest.org` | MC Shepherd |
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+---
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+## 2. Start the client
+
+<Steps>
+  <Step title="Clone and install">
+    ```bash
+    git clone https://github.com/kanzucodefoundation/project-zoe-client.git
+    cd project-zoe-client
+    git checkout develop
+    npm install
+    ```
+  </Step>
+  <Step title="Configure environment">
+    ```bash
+    cp .env.sample .env
+    ```
+
+    Set `VITE_API_URL=http://localhost:4002`.
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    npm run dev
+    ```
+
+    The app opens at **http://localhost:5173**.
+  </Step>
+</Steps>
+
+---
+
+## 3. Log in
+
+Navigate to **http://localhost:5173** and log in with:
+
+- **Church name:** `demo`
+- **Email:** `admin@worshipharvest.org`
+- **Password:** `password123`
+
+<Tip>
+  Try logging in with different accounts (e.g. `fellowship@worshipharvest.org`) to see how role-based access scopes data to each leader's part of the group hierarchy.
 </Tip>
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="layer-group" href="/architecture">
+    Understand multi-tenancy, the group tree, and the auth model.
+  </Card>
+  <Card title="API Reference" icon="code" href="/developer/api/overview">
+    Explore available REST endpoints.
+  </Card>
+  <Card title="Database & Migrations" icon="database" href="/developer/database">
+    How schema changes and migrations work.
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/developer/contributing">
+    How to submit a bug fix or feature.
+  </Card>
+</CardGroup>

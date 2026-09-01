@@ -1,0 +1,150 @@
+---
+title: "Authentication API"
+description: "Login, token refresh, logout, and password reset endpoints."
+---
+
+## POST /api/auth/login
+
+Authenticate a user and receive an access + refresh token pair.
+
+**Public — no token required.**
+
+### Request body
+
+```json
+{
+  "username": "admin@worshipharvest.org",
+  "password": "password123",
+  "churchName": "demo"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `username` | string | Yes | User's email or username |
+| `password` | string | Yes | User's password |
+| `churchName` | string | Yes | Tenant slug (church name, lowercased, no spaces) |
+
+### Response
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "admin@worshipharvest.org",
+    "contact": { "id": 1, "person": { "firstName": "John", "lastName": "Doe" } },
+    "roles": ["Admin"],
+    "permissions": ["contacts:read", "groups:manage"]
+  }
+}
+```
+
+---
+
+## GET /api/auth/me
+
+Returns the profile of the currently authenticated user.
+
+**Requires:** Bearer token.
+
+### Response
+
+```json
+{
+  "id": 1,
+  "username": "admin@worshipharvest.org",
+  "roles": ["Admin"],
+  "permissions": ["contacts:read", "groups:manage"]
+}
+```
+
+---
+
+## POST /api/auth/refresh
+
+Exchange a refresh token for a new access + refresh token pair.
+
+**Requires:** Bearer token (the access token, even if expired, or just the refresh token — depending on server config).
+
+### Request body
+
+```json
+{
+  "refreshToken": "eyJhbGci..."
+}
+```
+
+### Response
+
+```json
+{
+  "accessToken": "eyJhbGci...",
+  "refreshToken": "eyJhbGci..."
+}
+```
+
+---
+
+## POST /api/auth/logout
+
+Invalidates the current session.
+
+**Requires:** Bearer token.
+
+### Response
+
+```json
+{ "message": "Logged out successfully" }
+```
+
+---
+
+## POST /api/auth/forgot-password
+
+Sends a password reset link to the user's registered email.
+
+**Public — no token required.**
+
+### Request body
+
+```json
+{ "username": "admin@worshipharvest.org" }
+```
+
+### Response
+
+```json
+{
+  "message": "If an account exists for that address, a reset link has been sent."
+}
+```
+
+---
+
+## PUT /api/auth/reset-password/:token
+
+Sets a new password using the token from the reset email.
+
+**Public — no token required.**
+
+### Path parameter
+
+| Parameter | Description |
+|-----------|-------------|
+| `token` | Reset token from the email link |
+
+### Request body
+
+```json
+{ "password": "NewSecurePass@123" }
+```
+
+Passwords must meet complexity requirements (minimum length, mixed case, digits, special characters).
+
+### Response
+
+```json
+{ "message": "Password updated successfully." }
+```

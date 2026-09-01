@@ -1,0 +1,102 @@
+---
+title: "Group Hierarchy"
+description: "How Project Zoe models a church's organisational structure as a tree."
+---
+
+## Overview
+
+A church in Project Zoe is organised as a **tree of groups**. Every group belongs to a category that defines its level in the hierarchy. The default six-level hierarchy used by Worship Harvest looks like this:
+
+```
+Movement  (global)
+ └── Network
+      └── FOB  (Field of Battle / regional cluster)
+           └── Location  (city/campus)
+                └── Zone
+                     └── Fellowship  (MC — missional community)
+```
+
+This tree is modelled in PostgreSQL using a **closure table** via TypeORM's `@Tree('closure-table')` decorator, which makes ancestor/descendant queries efficient at any depth.
+
+---
+
+## Group entity
+
+Key fields on a `Group`:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Display name (unique under the same parent + category) |
+| `category` | The `GroupCategory` that defines the level (e.g. "Fellowship") |
+| `parent` | Direct parent group |
+| `privacy` | `Public` or `Private` |
+| `details` | Optional free-text description |
+| `address` | Optional embedded address (street, city, country) |
+| `metaData` | JSON blob for category-specific extras |
+
+---
+
+## Group categories
+
+`GroupCategory` records are created per tenant. The standard categories match the six hierarchy levels, but a tenant can define custom categories for auxiliary groups (e.g. "Choir", "Youth Wing") that sit outside the main pastoral hierarchy.
+
+---
+
+## Memberships
+
+A contact joins a group through a `GroupMembership` record:
+
+| Field | Description |
+|-------|-------------|
+| `contact` | The member |
+| `group` | The group they belong to |
+| `role` | Role within that group (e.g. Leader, Member) |
+| `isActive` | Whether the membership is current |
+
+A contact can be a member of multiple groups simultaneously (e.g. a fellowship member who also leads a zone worship team).
+
+### Membership requests
+
+Before being added to a group, a contact may go through a `GroupMembershipRequest`. Leaders can approve or reject pending requests.
+
+---
+
+## Access scoping by hierarchy
+
+Role-based access in Project Zoe scopes data to a leader's position in the tree:
+
+- A **Fellowship leader** sees only their fellowship's members and data.
+- A **Zone leader** sees all fellowships under their zone.
+- A **Location pastor** sees all zones and fellowships in their location.
+- A **Movement leader** sees the entire global hierarchy.
+
+This scoping is enforced server-side on every API query by checking the requesting user's group membership and role. See [Authentication & Roles](/concepts/authentication).
+
+---
+
+## Demo hierarchy
+
+The demo seed creates this 68-group structure across two networks:
+
+```
+Worship Harvest Global  (Movement)
+├── Africa Network
+│   └── East Africa  (FOB)
+│       ├── Kampala, Uganda  (Location)
+│       │   ├── North Zone  ── 5 fellowships
+│       │   ├── South Zone  ── 5 fellowships
+│       │   ├── Central Zone ─ 5 fellowships
+│       │   └── East Zone   ── 5 fellowships
+│       ├── Kigali, Rwanda  (Location)
+│       │   ├── Kimihurura Zone  ── 4 fellowships
+│       │   └── Nyarutarama Zone ── 4 fellowships
+│       └── Nairobi, Kenya  (Location)
+│           ├── Kilimani Zone   ── 4 fellowships
+│           ├── Westlands Zone  ── 4 fellowships
+│           └── Eastlands Zone  ── 4 fellowships
+└── Europe Network
+    └── Western Europe  (FOB)
+        └── Berlin, Germany  (Location)
+            ├── Prenzlauer Berg Zone ── 3 fellowships
+            └── Mitte Zone          ── 3 fellowships
+```

@@ -1,0 +1,115 @@
+---
+title: "Architecture"
+description: "How Project Zoe's server, client, and data model fit together."
+---
+
+## Overview
+
+Project Zoe is a standard client-server application with a NestJS REST API backend and a React single-page application frontend. Both are TypeScript throughout.
+
+```
+Browser (React SPA)
+       │  HTTPS / REST + WebSocket
+       ▼
+NestJS API  ─── Redis (cache)
+       │
+   PostgreSQL
+```
+
+---
+
+## Server
+
+The server is a **NestJS** application organised into feature modules. Each module owns its controllers, services, DTOs, and TypeORM entities.
+
+| Module | Responsibility |
+|--------|---------------|
+| `auth` | JWT login, refresh tokens, forgot/reset password |
+| `users` | User accounts, roles, permissions |
+| `tenants` | Church tenants — see [Multi-Tenancy](/concepts/multi-tenancy) |
+| `crm` | Contacts (people + companies), relationships, requests |
+| `groups` | Hierarchical group tree, memberships, categories |
+| `events` | Events, registration, attendance |
+| `attendance` | Service schedules and fellowship attendance tracking |
+| `finance` | Financial accounts, transactions, reconciliation |
+| `reports` | Report templates, field definitions, submissions |
+| `tasks` | Task assignment, comments, attachments |
+| `notifications` | Real-time push via WebSocket gateway |
+| `dashboard` | Aggregated stats for the home screen |
+| `search` | Cross-module full-text search |
+
+### Key infrastructure choices
+
+- **TypeORM** with PostgreSQL. Schema synchronisation is enabled in `local` mode only; all other environments use explicit migration files.
+- **Row-level multi-tenancy** — every entity carries a `tenant` foreign key, and the `TenantHeaderMiddleware` injects the tenant context on every request. See [Multi-Tenancy](/concepts/multi-tenancy).
+- **Redis** is used as an in-memory cache (1-hour default TTL). The server falls back gracefully when Redis is unavailable in development.
+- **JWT** access + refresh token pair. The `JwtAuthGuard` is applied globally; public routes opt out with the `@Public()` decorator.
+- **WebSocket gateway** (`NotificationsGateway`) provides real-time notifications to connected clients.
+
+---
+
+## Client
+
+The client is a **React 19 + Vite** SPA structured into feature modules that mirror the server.
+
+```
+src/
+├── modules/
+│   ├── contacts/
+│   ├── groups/
+│   ├── events/
+│   ├── attendance/
+│   ├── finance/
+│   ├── reports/
+│   ├── tasks/
+│   ├── notifications/
+│   └── dashboard/
+├── components/   # Shared UI components
+├── hooks/        # Shared React hooks
+└── utils/        # Helpers and formatters
+```
+
+**State management:**
+
+- **Redux Toolkit** — global auth state (current user, token)
+- **TanStack Query** — server state, caching, and background refetching for API calls
+- **React Router v6** — client-side routing
+
+---
+
+## Data model summary
+
+The core entities and their relationships:
+
+```
+Tenant
+ ├── Users (with Roles → permissions[])
+ ├── Contacts (Person | Company)
+ │    ├── Emails, Phones, Addresses
+ │    ├── Occasions (birthdays, anniversaries)
+ │    ├── Identifications (national ID, passport)
+ │    └── Relationships (spouse, parent, …)
+ ├── Groups (tree: Movement → Network → FOB → Location → Zone → Fellowship)
+ │    └── GroupMemberships (Contact ↔ Group with role)
+ ├── Events
+ │    ├── EventAttendance (Contact ↔ Event)
+ │    └── EventRegistration
+ ├── ServiceSchedules → ServiceInstances → ServiceAttendance
+ ├── FellowshipSchedules → FellowshipInstances → FellowshipAttendance
+ ├── FinancialAccounts → Transactions → ReconciliationMatches
+ ├── Reports → ReportFields + ReportSubmissions
+ └── Tasks → TaskComments + TaskAttachments
+```
+
+---
+
+## Deployment
+
+Both repos follow a two-branch CI/CD model:
+
+| Branch | Environment |
+|--------|-------------|
+| `develop` | Staging — auto-deploys on push |
+| `master` | Production — auto-deploys on push |
+
+The CI pipeline reads a base64-encoded `.env` from a GitHub secret and applies it at build/deploy time.

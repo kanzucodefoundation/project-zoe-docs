@@ -1,0 +1,112 @@
+---
+title: "Finance"
+description: "Managing financial accounts, transactions, and reconciliation in Project Zoe."
+---
+
+## Overview
+
+The Finance module lets churches track giving across multiple accounts (bank, mobile money, cash), categorise transactions, and reconcile mobile money inflows automatically against known givers.
+
+---
+
+## Financial accounts
+
+A `FinancialAccount` is any account through which money flows:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Account display name (e.g. "MTN Mobile Money") |
+| `accountType` | `BANK` · `MOBILE_MONEY` · `CASH` |
+| `accountNumber` | Account identifier (optional) |
+| `isActive` | Whether the account is currently in use |
+
+---
+
+## Transactions
+
+Each `Transaction` records a single inflow:
+
+| Field | Description |
+|-------|-------------|
+| `amount` | Amount (decimal, 2 decimal places) |
+| `transactionDate` | Date of the transaction |
+| `account` | The financial account it came through |
+| `senderName` | Name of the giver (from mobile money notification) |
+| `senderPhone` | Giver's phone number |
+| `narration` | Free-text description or mobile money memo |
+| `externalReference` | Reference ID from the payment provider |
+| `category` | `TITHE` · `OFFERING` · `DONATION` · `ARISE_BUILD` |
+| `status` | `PENDING` · `RECONCILED` · `DISPUTED` |
+| `rawData` | Full JSON payload from the payment provider |
+
+### Transaction status lifecycle
+
+```
+PENDING  →  RECONCILED  (matched to a contact)
+         →  DISPUTED    (flagged for manual review)
+```
+
+---
+
+## Reconciliation
+
+Reconciliation links a `PENDING` transaction to a known contact (giver). The matching system uses phone number normalisation and name similarity to suggest matches automatically.
+
+### Automatic matching
+
+The `MatchingService` scores candidate contacts against a transaction using:
+- Normalised phone number comparison
+- Name similarity scoring
+
+Matches above a confidence threshold are auto-reconciled; below-threshold matches are presented to the user for manual approval.
+
+### Reconciliation matches
+
+Each `ReconciliationMatch` records:
+
+| Field | Description |
+|-------|-------------|
+| `transaction` | The transaction being matched |
+| `contact` | The proposed matching contact |
+| `matchType` | How the match was found (e.g. `PHONE`, `NAME`) |
+| `matchStatus` | `PENDING` · `APPROVED` · `REJECTED` |
+| `confidence` | Numeric confidence score (0–1) |
+
+---
+
+## Distributions
+
+`Distribution` and `DistributionBatch` handle the disbursement side — recording how collected funds were sent out (e.g. to a ministry, to cover expenses).
+
+---
+
+## Contact payment methods
+
+A `ContactPaymentMethod` stores a contact's registered payment details (e.g. their mobile money number) to speed up future reconciliation.
+
+---
+
+## Finance reports
+
+The `FinanceReportsService` generates summary reports:
+- Total giving by category over a date range
+- Top givers
+- Reconciliation status breakdown
+- Account-level totals
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/finance/accounts` | List financial accounts |
+| `POST` | `/api/finance/accounts` | Create an account |
+| `GET` | `/api/finance/transactions` | List transactions (filterable by status, category, date) |
+| `POST` | `/api/finance/transactions` | Record a transaction |
+| `PUT` | `/api/finance/transactions/:id` | Update a transaction |
+| `GET` | `/api/finance/reconciliation` | List reconciliation matches |
+| `POST` | `/api/finance/reconciliation/match` | Manually create a match |
+| `PUT` | `/api/finance/reconciliation/match/:id/approve` | Approve a match |
+| `PUT` | `/api/finance/reconciliation/match/:id/reject` | Reject a match |
+| `GET` | `/api/finance/reports` | Finance summary reports |

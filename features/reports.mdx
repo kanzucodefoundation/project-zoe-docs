@@ -1,0 +1,113 @@
+---
+title: "Reports"
+description: "Defining custom report templates and collecting structured data from group leaders."
+---
+
+## Overview
+
+The Reports module gives church administrators a way to define structured data-collection forms that group leaders fill in on a regular schedule. Reports are highly flexible: administrators choose the fields, the frequency, the target group category, and the visualisation type.
+
+---
+
+## Report templates
+
+A `Report` defines the template:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Report name (e.g. "MC Weekly Attendance") |
+| `description` | What the report is for |
+| `submissionFrequency` | `daily` · `weekly` · `monthly` · `custom` |
+| `targetGroupCategory` | Which level of leaders submit this report (e.g. Fellowship) |
+| `viewType` | How to display aggregated results |
+| `sqlQuery` | Optional custom SQL for computed analytics |
+| `status` | `DRAFT` · `PUBLISHED` |
+| `active` | Whether the report is currently collecting submissions |
+
+### View types
+
+Reports can be displayed as:
+
+| View type | Use case |
+|-----------|---------|
+| `table` | Tabular data — default |
+| `bargraph` | Compare values across groups |
+| `linechart` | Trend over time |
+| `piechart` | Share of a total |
+| `donutchart` | Share with a centre label |
+| `scatterplot` | Correlation between two values |
+| `heatmap` | Density across two axes |
+| `gaugechart` | Progress toward a target |
+| `treemap` | Hierarchical proportions |
+
+---
+
+## Report fields
+
+Each report has one or more `ReportField` records that define the questions leaders answer when submitting:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Field identifier |
+| `label` | Human-readable label shown in the form |
+| `fieldType` | `text` · `number` · `date` · `select` · `multiselect` · `boolean` |
+| `required` | Whether the field must be filled |
+| `options` | Choices for `select` / `multiselect` fields |
+| `order` | Display order |
+
+---
+
+## Submissions
+
+A `ReportSubmission` is one leader's submission for one report period:
+
+| Field | Description |
+|-------|-------------|
+| `report` | The report template |
+| `group` | The submitting group (e.g. a fellowship) |
+| `user` | The user who submitted |
+| `submittedAt` | Timestamp |
+| `data` | JSON bag of field name → value pairs |
+
+`ReportSubmissionData` normalises the field values for querying.
+
+---
+
+## Demo reports
+
+The seed data creates four report types:
+
+| Report | Frequency | Fields |
+|--------|-----------|--------|
+| MC Attendance Report | Weekly | 12 — attendance, hosts, visitors, testimonies, … |
+| Sunday Service Report | Weekly | 8 — total attendance, demographics, offering, sermon topic |
+| Baptism Report | Custom | 6 — date, location, minister, names |
+| Salvation Report | Custom | 5 — context, names, follow-up plans |
+
+---
+
+## Submission tracking
+
+Leaders who have not submitted a report for the current period appear as **overdue** in the admin view. The system tracks expected submission dates based on `submissionFrequency` and `targetGroupCategory`.
+
+---
+
+## Metric field maps
+
+`ReportMetricFieldMap` links a report field to a dashboard metric key, enabling the dashboard to surface specific report values as KPIs without custom SQL.
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/reports` | List report templates |
+| `POST` | `/api/reports` | Create a report template |
+| `GET` | `/api/reports/:id` | Get a report with fields |
+| `PUT` | `/api/reports/:id` | Update a report |
+| `DELETE` | `/api/reports/:id` | Delete a report |
+| `GET` | `/api/reports/:id/submissions` | List submissions for a report |
+| `POST` | `/api/reports/:id/submissions` | Submit a report |
+| `GET` | `/api/reports/submissions/team` | All submissions scoped to the current user's team |
+| `GET` | `/api/reports/submissions/overdue` | Groups that haven't submitted for the current period |

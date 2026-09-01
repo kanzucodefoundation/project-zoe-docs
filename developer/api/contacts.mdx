@@ -1,0 +1,200 @@
+---
+title: "Contacts API"
+description: "REST endpoints for managing contacts (people and companies) in the CRM."
+---
+
+All endpoints require a Bearer token. All responses are scoped to the authenticated user's tenant.
+
+---
+
+## GET /api/crm/contacts
+
+List contacts with optional filtering and pagination.
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | number | Page number (default: 1) |
+| `limit` | number | Results per page (default: 20) |
+| `category` | string | Filter by `Person` or `Company` |
+| `status` | string | Filter by contact status |
+| `q` | string | Search by name, email, or phone |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "category": "Person",
+      "status": "Active",
+      "person": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "gender": "Male"
+      },
+      "emails": [{ "value": "john@example.com", "isPrimary": true }],
+      "phones": [{ "value": "+256701123456", "isPrimary": true }]
+    }
+  ],
+  "total": 142,
+  "page": 1,
+  "limit": 20
+}
+```
+
+---
+
+## POST /api/crm/contacts
+
+Create a new contact.
+
+### Request body (Person)
+
+```json
+{
+  "category": "Person",
+  "person": {
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "middleName": "Mary",
+    "gender": "Female",
+    "civilStatus": "Single",
+    "dateOfBirth": "1995-03-15",
+    "occupation": "Teacher"
+  },
+  "emails": [{ "value": "jane.smith@example.com", "isPrimary": true }],
+  "phones": [{ "value": "+256712345678", "isPrimary": true }],
+  "addresses": [
+    {
+      "street": "Plot 45, Kampala Road",
+      "city": "Kampala",
+      "country": "Uganda",
+      "isPrimary": true
+    }
+  ]
+}
+```
+
+### Response
+
+```json
+{ "id": 43, "category": "Person", "status": "Active", ... }
+```
+
+---
+
+## GET /api/crm/contacts/:id
+
+Get a single contact with all associated records.
+
+### Response
+
+Returns the full contact object including:
+- `person` or `company` details
+- `emails`, `phones`, `addresses`
+- `occasions` (birthdays, anniversaries)
+- `identifications`
+- `relationships`
+- `requests`
+- `groupMemberships`
+
+---
+
+## PUT /api/crm/contacts/:id
+
+Update a contact. Send only the fields you want to change.
+
+---
+
+## DELETE /api/crm/contacts/:id
+
+Delete a contact and all its associated records (cascade delete).
+
+---
+
+## GET /api/crm/people
+
+List person contacts only. Accepts the same query parameters as `/api/crm/contacts`.
+
+---
+
+## GET /api/crm/companies
+
+List company contacts only.
+
+---
+
+## POST /api/crm/contacts/import
+
+Bulk import contacts from a structured payload.
+
+### Request body
+
+```json
+{
+  "contacts": [
+    {
+      "firstName": "Alice",
+      "lastName": "Nakato",
+      "phone": "+256701000001",
+      "email": "alice@example.com",
+      "gender": "Female"
+    }
+  ]
+}
+```
+
+Returns a summary of created, updated, and errored rows.
+
+---
+
+## Relationships
+
+### GET /api/crm/relationships
+
+List relationships between contacts.
+
+### POST /api/crm/relationships
+
+Link two contacts with a relationship type (e.g. `Spouse`, `Parent`, `Child`, `Sibling`):
+
+```json
+{
+  "contactId": 1,
+  "relatedContactId": 2,
+  "type": "Spouse"
+}
+```
+
+---
+
+## Requests (prayer/pastoral needs)
+
+### POST /api/crm/requests
+
+```json
+{
+  "contactId": 1,
+  "description": "Needs prayer for health",
+  "type": "Prayer"
+}
+```
+
+### GET /api/crm/requests
+
+List all requests, filterable by contact or type.
+
+---
+
+## Contact status values
+
+| Value | Meaning |
+|-------|---------|
+| `Active` | Current, engaged member |
+| `Inactive` | Not currently engaged |
+| `MovedAway` | Relocated |
+| `TransferredToAnotherChurch` | Left for another church |
+| `Deceased` | Deceased |

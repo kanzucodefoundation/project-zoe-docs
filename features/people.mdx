@@ -1,0 +1,105 @@
+---
+title: "People (CRM)"
+description: "Managing contacts — people and companies — in Project Zoe."
+---
+
+## Overview
+
+The CRM module is the heart of Project Zoe. Every individual or organisation the church cares about is a **Contact**. Contacts drive everything else: group memberships, event attendance, financial contributions, tasks, and reports.
+
+---
+
+## Contact categories
+
+| Category | Description |
+|----------|-------------|
+| `Person` | An individual (member, visitor, child) |
+| `Company` | An organisation (business, partner church) |
+
+---
+
+## Contact status
+
+| Status | Meaning |
+|--------|---------|
+| `Active` | Current, engaged member |
+| `Inactive` | Not currently engaged |
+| `MovedAway` | Relocated — no longer attending |
+| `TransferredToAnotherChurch` | Left for another congregation |
+| `Deceased` | Deceased |
+
+---
+
+## What's stored on a contact
+
+### Person details
+
+| Field | Examples |
+|-------|---------|
+| First / middle / last name | "John Emmanuel Doe" |
+| Gender | Male, Female |
+| Civil status | Single, Married, Widowed, Divorced |
+| Date of birth | Used to send birthday greetings |
+| Occupation / workplace | — |
+| Age group | Youth, Young Adult, Adult, Senior |
+| Profession | — |
+
+### Contact info
+
+- **Phones** — multiple numbers with labels (home, work, mobile)
+- **Emails** — multiple addresses with labels
+- **Addresses** — multiple addresses with type (residential, postal)
+
+### Additional records
+
+| Record | Purpose |
+|--------|---------|
+| **Occasions** | Birthdays, anniversaries, memorial dates |
+| **Identifications** | National ID, passport, voter ID |
+| **Relationships** | Links between contacts (spouse, parent, child, sibling) |
+| **Requests** | Prayer requests and pastoral needs |
+| **Activity log** | Auto-generated trail of interactions (task created, group joined, …) |
+
+---
+
+## Import
+
+Contacts can be bulk-imported via the `/api/crm/contacts/import` endpoint, which accepts a CSV-style payload. The import controller validates each row and reports errors per record rather than failing the entire batch.
+
+---
+
+## Company contacts
+
+A `Company` contact is similar to a `Person` but stores:
+- Company name
+- Industry / sector
+- Contact person (linked to a `Person` contact)
+
+---
+
+## Searching contacts
+
+The search module exposes a unified search across contacts, groups, and other entities:
+
+```
+GET /api/search?q=<term>&type=contacts
+```
+
+Results are scoped to the requesting user's tenant and hierarchy level.
+
+---
+
+## API endpoints
+
+Full reference: [Contacts API](/developer/api/contacts).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/crm/contacts` | List contacts (paginated, filterable) |
+| `POST` | `/api/crm/contacts` | Create a contact |
+| `GET` | `/api/crm/contacts/:id` | Get a single contact with all sub-records |
+| `PUT` | `/api/crm/contacts/:id` | Update a contact |
+| `DELETE` | `/api/crm/contacts/:id` | Delete a contact |
+| `GET` | `/api/crm/people` | List person contacts |
+| `GET` | `/api/crm/companies` | List company contacts |
+| `POST` | `/api/crm/contacts/import` | Bulk import |

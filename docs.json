@@ -4,31 +4,81 @@
   "name": "Project Zoe",
   "colors": {
     "primary": "#16A34A",
-    "light": "#07C983",
+    "light": "#4ADE80",
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "quickstart",
+              "architecture"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/multi-tenancy",
+              "concepts/group-hierarchy",
+              "concepts/authentication"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/people",
+              "features/groups",
+              "features/events",
+              "features/attendance",
+              "features/finance",
+              "features/reports",
+              "features/tasks"
+            ]
+          },
+          {
+            "group": "Developer Guide",
+            "pages": [
+              "developer/server-setup",
+              "developer/client-setup",
+              "developer/database",
+              "developer/contributing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API",
+            "pages": [
+              "developer/api/overview",
+              "developer/api/authentication",
+              "developer/api/contacts",
+              "developer/api/groups",
+              "developer/api/events"
+            ]
+          }
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "GitHub (Server)",
+          "href": "https://github.com/kanzucodefoundation/project-zoe-server",
+          "icon": "github"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "GitHub (Client)",
+          "href": "https://github.com/kanzucodefoundation/project-zoe-client",
+          "icon": "github"
         }
       ]
     }
@@ -41,32 +91,18 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:info@kanzucodefoundation.org"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "GitHub",
+      "href": "https://github.com/kanzucodefoundation/project-zoe-server"
     }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/kanzucodefoundation"
     }
   }
 }

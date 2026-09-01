@@ -1,0 +1,181 @@
+---
+title: "Groups API"
+description: "REST endpoints for managing the group hierarchy, memberships, and categories."
+---
+
+All endpoints require a Bearer token. All responses are scoped to the authenticated user's tenant and hierarchy level.
+
+---
+
+## GET /api/groups
+
+List groups. Results are scoped to the groups visible to the authenticated user.
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `categoryId` | number | Filter by group category |
+| `parentId` | number | Filter by parent group |
+| `page` | number | Page number |
+| `limit` | number | Results per page |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": 7,
+      "name": "North Zone Kampala",
+      "category": { "id": 5, "name": "Zone" },
+      "parent": { "id": 10, "name": "Kampala, Uganda" },
+      "privacy": "Public",
+      "details": null,
+      "address": { "city": "Kampala", "country": "Uganda" }
+    }
+  ],
+  "total": 68
+}
+```
+
+---
+
+## POST /api/groups
+
+Create a group.
+
+### Request body
+
+```json
+{
+  "name": "Makerere Fellowship",
+  "categoryId": 6,
+  "parentId": 20,
+  "privacy": "Public",
+  "details": "Meets every Friday at 6pm",
+  "address": {
+    "street": "Makerere University Campus",
+    "city": "Kampala",
+    "country": "Uganda"
+  }
+}
+```
+
+---
+
+## GET /api/groups/:id
+
+Get a single group including its children and members.
+
+---
+
+## PUT /api/groups/:id
+
+Update a group. Send only changed fields.
+
+---
+
+## DELETE /api/groups/:id
+
+Delete a group. Groups with active memberships or sub-groups cannot be deleted without first removing those relationships.
+
+---
+
+## Group categories
+
+### GET /api/groups/categories
+
+List all group categories for the tenant.
+
+### POST /api/groups/categories
+
+Create a new category:
+
+```json
+{
+  "name": "Fellowship",
+  "description": "Missional community at the base level",
+  "purpose": "fellowship"
+}
+```
+
+---
+
+## Memberships
+
+### GET /api/groups/membership
+
+List group memberships. Filterable by `groupId` or `contactId`.
+
+### POST /api/groups/membership
+
+Add a contact to a group:
+
+```json
+{
+  "contactId": 42,
+  "groupId": 7,
+  "role": "Member",
+  "isActive": true
+}
+```
+
+### PUT /api/groups/membership/:id
+
+Update a membership (e.g. change role or deactivate).
+
+### DELETE /api/groups/membership/:id
+
+Remove a contact from a group.
+
+---
+
+## Membership requests
+
+### GET /api/groups/membership-request
+
+List pending membership requests visible to the current user.
+
+### POST /api/groups/membership-request
+
+Submit a request for a contact to join a group:
+
+```json
+{
+  "contactId": 55,
+  "groupId": 7
+}
+```
+
+### PUT /api/groups/membership-request/:id/approve
+
+Approve a pending request — creates an active `GroupMembership`.
+
+### PUT /api/groups/membership-request/:id/reject
+
+Reject a pending request.
+
+---
+
+## Combo (dropdown list)
+
+### GET /api/groups/combo
+
+Returns a flat list of groups for use in select dropdowns. Accepts a `categoryId` filter.
+
+---
+
+## Import
+
+### POST /api/groups/import
+
+Bulk import groups from a structured payload. Useful for setting up a new tenant from an existing directory.
+
+```json
+{
+  "groups": [
+    { "name": "North Zone", "category": "Zone", "parentName": "Kampala, Uganda" }
+  ]
+}
+```

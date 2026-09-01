@@ -1,0 +1,119 @@
+---
+title: "Client Setup"
+description: "Developer setup guide for the Project Zoe React client."
+---
+
+## Prerequisites
+
+| Requirement | Version |
+|-------------|---------|
+| Node.js | 20+ |
+| Project Zoe server | Running locally on port 4002 |
+
+---
+
+## Clone and install
+
+```bash
+git clone https://github.com/kanzucodefoundation/project-zoe-client.git
+cd project-zoe-client
+git checkout develop
+npm install
+```
+
+---
+
+## Environment configuration
+
+```bash
+cp .env.sample .env
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_API_URL` | Base URL of the API server | `http://localhost:4002` |
+
+---
+
+## Start the dev server
+
+```bash
+npm run dev
+```
+
+The app opens at **http://localhost:5173** with Vite's hot-module replacement.
+
+---
+
+## Available scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start dev server with HMR |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Lint the codebase |
+
+---
+
+## Project structure
+
+```
+src/
+├── App.tsx              # Root component, router setup
+├── main.tsx             # Entry point
+├── modules/             # Feature modules (mirrors server)
+│   ├── contacts/        # People & companies
+│   ├── groups/          # Group tree, memberships
+│   ├── events/          # Events & attendance
+│   ├── attendance/      # Service & fellowship attendance
+│   ├── finance/         # Accounts, transactions
+│   ├── reports/         # Report templates & submissions
+│   ├── tasks/           # Task management
+│   ├── notifications/   # In-app notifications
+│   ├── dashboard/       # Home dashboard
+│   ├── admin/           # Tenant administration
+│   └── login/           # Auth screens
+├── components/          # Shared UI components (tables, modals, forms)
+├── hooks/               # Shared React hooks
+├── data/                # API call functions (using TanStack Query)
+├── utils/               # Formatters, helpers
+└── theme-wh/            # MUI theme customisation (Worship Harvest brand)
+```
+
+---
+
+## Tech choices
+
+| Concern | Library |
+|---------|---------|
+| UI framework | Material UI (MUI) v7 |
+| Global state | Redux Toolkit |
+| Server state / caching | TanStack Query (React Query) |
+| Routing | React Router v6 |
+| Build | Vite |
+| Testing | Vitest |
+
+---
+
+## Connecting to a remote server
+
+To point the client at a staging or production API, set `VITE_API_URL` in your `.env`:
+
+```bash
+VITE_API_URL=https://api.staging.projectzoe.org
+```
+
+Then restart the dev server. The variable is baked into the build at compile time via Vite's `import.meta.env`.
+
+---
+
+## Production build
+
+```bash
+npm run build
+```
+
+Output goes to `dist/`. The `dist/` directory is a standard static file bundle — deploy it to any static host (Netlify, Vercel, S3 + CloudFront, etc.) or serve it with Nginx.
+
+Set `VITE_API_URL` as a CI/CD environment variable so the correct API URL is baked in at build time for each environment.

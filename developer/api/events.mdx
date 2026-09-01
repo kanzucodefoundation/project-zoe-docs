@@ -1,0 +1,153 @@
+---
+title: "Events API"
+description: "REST endpoints for managing events, registrations, and attendance."
+---
+
+All endpoints require a Bearer token. Results are scoped to the authenticated user's tenant and hierarchy.
+
+---
+
+## GET /api/events
+
+List events.
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `groupId` | number | Filter by hosting group |
+| `categoryId` | number | Filter by event category |
+| `from` | date | Start of date range (`YYYY-MM-DD`) |
+| `to` | date | End of date range (`YYYY-MM-DD`) |
+| `page` | number | Page number |
+| `limit` | number | Results per page |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": 3,
+      "name": "Easter Conference 2025",
+      "description": "Annual Easter gathering",
+      "startDate": "2025-04-18",
+      "endDate": "2025-04-20",
+      "group": { "id": 10, "name": "Kampala, Uganda" },
+      "category": { "id": 2, "name": "Conference" }
+    }
+  ],
+  "total": 14
+}
+```
+
+---
+
+## POST /api/events
+
+Create an event.
+
+### Request body
+
+```json
+{
+  "name": "Easter Conference 2025",
+  "description": "Annual Easter gathering",
+  "startDate": "2025-04-18",
+  "endDate": "2025-04-20",
+  "groupId": 10,
+  "categoryId": 2,
+  "metaData": {
+    "venue": "Kampala International University",
+    "expectedAttendance": 500
+  }
+}
+```
+
+---
+
+## GET /api/events/:id
+
+Get an event with its registration and attendance records.
+
+---
+
+## PUT /api/events/:id
+
+Update an event.
+
+---
+
+## DELETE /api/events/:id
+
+Delete an event and its associated records.
+
+---
+
+## Event categories
+
+### GET /api/events/categories
+
+List all event categories for the tenant.
+
+### POST /api/events/categories
+
+```json
+{ "name": "Outreach", "description": "Community evangelism events" }
+```
+
+---
+
+## Registration
+
+### GET /api/events/:id/registration
+
+Get the registration list for an event.
+
+### POST /api/events/:id/registration
+
+Register one or more contacts for an event:
+
+```json
+{ "contactIds": [42, 43, 44] }
+```
+
+### DELETE /api/events/:id/registration/:registrationId
+
+Cancel a registration.
+
+---
+
+## Attendance
+
+### GET /api/events/:id/attendance
+
+Get the attendance list for an event.
+
+### POST /api/events/:id/attendance
+
+Record attendance for an event:
+
+```json
+{ "contactIds": [42, 43] }
+```
+
+---
+
+## Event activities
+
+Event activities record what happened for specific individuals during an event (e.g. a salvation or baptism).
+
+### GET /api/events/:id/activities
+
+List activities for an event.
+
+### POST /api/events/:id/activities
+
+```json
+{
+  "activityType": "Salvation",
+  "contactIds": [55, 56],
+  "notes": "Responded during altar call"
+}
+```

@@ -1,0 +1,78 @@
+---
+title: "Events & Attendance"
+description: "Creating events, tracking registrations, and recording attendance."
+---
+
+## Overview
+
+The Events module handles one-off and recurring church events such as conferences, seminars, outreaches, and special services. It is separate from the weekly service and fellowship attendance tracking (see [Attendance](/features/attendance)).
+
+---
+
+## Events
+
+An event belongs to a **group** and an **event category**. Key fields:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Event title |
+| `description` | Details about the event |
+| `startDate` / `endDate` | When the event runs |
+| `group` | The hosting group |
+| `category` | Event category (e.g. Conference, Outreach, Prayer) |
+| `metaData` | JSON extras (venue, capacity, etc.) |
+
+### Event fields
+
+Custom data can be collected per event via `EventField` records. These behave like form fields attached to the event, allowing different events to capture different data points.
+
+---
+
+## Registration
+
+Contacts can register for an event ahead of time via `EventRegistration`. This gives organisers a pre-event headcount and allows follow-up with registered participants.
+
+```
+POST /api/events/:eventId/registration
+{
+  "contactId": 42
+}
+```
+
+---
+
+## Attendance
+
+After an event, attendance is recorded per contact via `EventAttendance`:
+
+```
+POST /api/events/:eventId/attendance
+{
+  "contactIds": [42, 43, 44]
+}
+```
+
+Attendance records are used in reports and on the contact's activity history.
+
+---
+
+## Event activities
+
+`EventActivity` records track specific activities that happened during an event (e.g. salvation, baptism, first-timer). These are associated with both the event and individual contacts through `MemberEventActivities`.
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/events` | List events |
+| `POST` | `/api/events` | Create an event |
+| `GET` | `/api/events/:id` | Get event details |
+| `PUT` | `/api/events/:id` | Update an event |
+| `DELETE` | `/api/events/:id` | Delete an event |
+| `GET` | `/api/events/categories` | List event categories |
+| `POST` | `/api/events/:id/attendance` | Record attendance |
+| `GET` | `/api/events/:id/attendance` | Get attendance list |
+| `POST` | `/api/events/:id/registration` | Register a contact |
+| `GET` | `/api/events/:id/registration` | Get registration list |

@@ -1,0 +1,83 @@
+---
+title: "Groups"
+description: "Organising the church into a flexible multi-level group hierarchy."
+---
+
+## Overview
+
+Groups model the organisational structure of a church. They are stored as a tree using a closure table, making it fast to query all groups under a given node at any depth. See [Group Hierarchy](/concepts/group-hierarchy) for how the levels relate to each other.
+
+---
+
+## Creating and managing groups
+
+A group requires at minimum a **name** and a **category**. It can optionally have:
+- A parent group (which places it in the tree)
+- A description
+- An address (useful for fellowships that meet at a specific location)
+- A privacy setting (`Public` / `Private`)
+- A `metaData` JSON blob for category-specific extras
+
+### Group categories
+
+Categories are defined per tenant via the `GroupCategory` entity. The standard categories for a six-level church hierarchy are created automatically when the tenant is seeded. Custom categories can be added for auxiliary groups (worship teams, committees, etc.).
+
+---
+
+## Group memberships
+
+A **contact** joins a group through a `GroupMembership` record. Each membership specifies the contact's role within that group.
+
+### Adding members
+
+```
+POST /api/groups/membership
+{
+  "contactId": 42,
+  "groupId": 7,
+  "role": "Leader"
+}
+```
+
+### Membership requests
+
+When a contact applies to join a group, a `GroupMembershipRequest` is created. A group leader can approve or reject it:
+
+```
+GET  /api/groups/membership-request          List pending requests
+PUT  /api/groups/membership-request/:id/approve
+PUT  /api/groups/membership-request/:id/reject
+```
+
+---
+
+## Importing groups
+
+Groups can be bulk-imported via CSV through the `group-import` endpoint. This is useful when setting up a new tenant from an existing directory.
+
+---
+
+## Group combo
+
+The `group-combo` endpoint returns a flat list of groups suitable for populating select dropdowns in the client UI. It accepts a category filter to restrict results to a specific hierarchy level.
+
+---
+
+## API endpoints
+
+Full reference: [Groups API](/developer/api/groups).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/groups` | List groups (with optional category/parent filters) |
+| `POST` | `/api/groups` | Create a group |
+| `GET` | `/api/groups/:id` | Get a group (with children and members) |
+| `PUT` | `/api/groups/:id` | Update a group |
+| `DELETE` | `/api/groups/:id` | Delete a group |
+| `GET` | `/api/groups/categories` | List group categories |
+| `POST` | `/api/groups/categories` | Create a group category |
+| `GET` | `/api/groups/membership` | List memberships |
+| `POST` | `/api/groups/membership` | Add a member |
+| `DELETE` | `/api/groups/membership/:id` | Remove a member |
+| `GET` | `/api/groups/membership-request` | List membership requests |
+| `POST` | `/api/groups/import` | Bulk import groups |
