@@ -1,55 +1,35 @@
-# Mintlify Starter Kit
+# Project Zoe — Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+This repo holds the Mintlify documentation for [Project Zoe](https://projectzoe.org), an open-source church relationship management system (RMS).
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+The docs are automatically deployed to **[docs.projectzoe.org](https://docs.projectzoe.org)** on every push to `main`.
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+## What's covered
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+- Getting started and local setup
+- Core concepts: multi-tenancy, group hierarchy, authentication
+- Feature guides: people/CRM, groups, events, attendance, finance, reports, tasks
+- Developer guides: server setup, client setup, database migrations, contributing
+- API reference: authentication, contacts, groups, events
 
-## AI-assisted writing
+## Local preview
 
-Set up your AI coding tool to work with Mintlify:
+Install the Mintlify CLI and run a local preview:
 
 ```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
 npm i -g mint
-```
-
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
 mint dev
 ```
 
-View your local preview at `http://localhost:3000`.
+The preview runs at **http://localhost:3000**.
 
-## Publishing changes
+## Making changes
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
+1. Edit or add `.mdx` files in this repo.
+2. Update the `navigation` in `docs.json` if you add a new page.
+3. Push to `main` — Mintlify deploys automatically.
 
-## Need help?
+## Related repos
 
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+- [project-zoe-server](https://github.com/kanzucodefoundation/project-zoe-server) — NestJS API
+- [project-zoe-client](https://github.com/kanzucodefoundation/project-zoe-client) — React client
